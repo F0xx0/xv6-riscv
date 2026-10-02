@@ -6,6 +6,7 @@
 #include "spinlock.h"
 #include "proc.h"
 #include "vm.h"
+#include "pstat.h"
 
 uint64
 sys_exit(void)
@@ -121,4 +122,14 @@ sys_uptime(void)
   xticks = ticks;
   release(&tickslock);
   return xticks;
+}
+
+//construct pstat records, and copy them to the array.
+uint64
+sys_getprocs(void)
+{
+  uint64 addr;
+
+  argaddr(0, &addr); //Adress supplied by user
+  return getprocs(addr); //Calls process table
 }

@@ -5,7 +5,6 @@
 #include "spinlock.h"
 #include "proc.h"
 #include "defs.h"
-#include "pstat.h"
 
 struct cpu cpus[NCPU];
 
@@ -774,3 +773,46 @@ procdump(void)
     printk("\n");
   }
 }
+
+//walks through every possible process slot and aquired all used, ignore unused
+//for each process we construct the pstat, and obtain the parents PID.
+//For each copy the kernel data into the calling process's user virtual address space
+//Calculate and select succesive elements 
+int
+getprocs(uint64 addr)
+{
+  struct proc *p;
+  struct proc *currproc = myproc();
+  struct pstat ps;
+  int count = 0;
+
+  for(p = proc; p < &proc[NPROC]; p++){
+    acquire(&p->lock);
+
+    if(p->state != UNUSED){
+      ps.pid = p->pid;
+      ps.state = p->state;
+      ps.size = p->sz;
+
+      if(p->parent != 0)
+        ps.ppid = p->parent->pid;
+      else
+        ps.ppid = 0;
+
+      safestrcpy(ps.name, p->name, sizeof(ps.name));
+
+      if(copyout(currproc->pagetable,
+                 currproc->sz,
+                 addr + count * sizeof(struct pstat),
+                 (char *)&ps,
+                 sizeof(struct pstat)) < 0){
+        release(&p->lock);
+        return -1;
+      }
+      count++;
+    }
+    release(&p->lock);
+  }
+  return count;
+}
+
