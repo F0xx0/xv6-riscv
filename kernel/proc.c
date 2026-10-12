@@ -6,6 +6,8 @@
 #include "proc.h"
 #include "defs.h"
 
+extern uint ticks;
+
 struct cpu cpus[NCPU];
 
 struct proc proc[NPROC];
@@ -124,7 +126,8 @@ allocproc(void)
 found:
   p->pid = allocpid();
   p->cputime = 0;
-  p->priority = 0;
+  p->priority = 0;   //(PA2)
+  p->readytime = 0;  //(PA2)
   p->state = USED;
 
   // Allocate a trapframe page.
@@ -227,6 +230,7 @@ userinit(void)
 
   p->cwd = namei("/");
 
+  p->readytime = __atomic_load_n(&ticks, __ATOMIC_RELAXED);
   p->state = RUNNABLE;
 
   release(&p->lock);
@@ -303,6 +307,7 @@ kfork(void)
   release(&wait_lock);
 
   acquire(&np->lock);
+  np->readytime = __atomic_load_n(&ticks, __ATOMIC_RELAXED);
   np->state = RUNNABLE;
   release(&np->lock);
 
@@ -526,6 +531,7 @@ scheduler(void)
         // Switch to chosen process.  It is the process's job
         // to release its lock and then reacquire it
         // before jumping back to us.
+        p->readytime = ticks;
         p->state = RUNNING;
         c->proc = p;
         swtch(&c->context, &p->context);
@@ -580,6 +586,7 @@ yield(void)
 {
   struct proc *p = myproc();
   acquire(&p->lock);
+  p->readytime = __atomic_load_n(&ticks, __ATOMIC_RELAXED);
   p->state = RUNNABLE;
   sched();
   release(&p->lock);
@@ -666,6 +673,7 @@ wakeup(void *chan)
       // If this waiting process has gotten so far as to actually
       // go to sleep, also set it back to RUNNING.
       if (p->state == SLEEPING) {
+        p->readytime = __atomic_load_n(&ticks, __ATOMIC_RELAXED);
         p->state = RUNNABLE;
       }
     }
@@ -687,6 +695,7 @@ kkill(int pid)
       p->killed = 1;
       if (p->state == SLEEPING) {
         // Wake process from sleep().
+        p->readytime = __atomic_load_n(&ticks, __ATOMIC_RELAXED);
         p->state = RUNNABLE;
       }
       release(&p->lock);
@@ -798,6 +807,7 @@ getprocs(uint64 addr)
       ps.state = p->state;
       ps.size = p->sz;
       ps.priority = p->priority; //(PA2)
+      ps.readytime = p->readytime;
 
       if(p->parent != 0)
         ps.ppid = p->parent->pid;

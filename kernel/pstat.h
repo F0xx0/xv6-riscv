@@ -13,7 +13,8 @@ struct pstat {
   uint64 size;          // Size of process memory (bytes)
   int ppid;             // Parent process ID
   char name[16];        // Parent command name
-  int priority;   // Process priority (PA2)
+  int priority;         // Process priority (PA2)
+  uint readytime;       // Time process entered RUNNABLE (PA2)
 };
 
 #endif

@@ -17,6 +17,8 @@ main(int argc, char **argv)
   int nprocs;
   int i;
   char *state;
+  uint current_time;
+  uint age;
   static char *states[] = {
     [SLEEPING]  "sleeping",
     [RUNNABLE]  "runnable",
@@ -28,7 +30,8 @@ main(int argc, char **argv)
   if (nprocs < 0)
     exit(-1);
 
-  printf("PID   STATE       SIZE       PPID   PRIORITY   NAME\n");
+  current_time = uptime();
+  printf("PID  STATE       SIZE       PPID   PRIORITY   AGE       NAME\n");
   for (i = 0; i < nprocs; i++) {
     state = states[uproc[i].state];
 
@@ -46,6 +49,18 @@ main(int argc, char **argv)
 
     printf("%d", uproc[i].priority);
     pad(1, 11);
+
+    //Calculate age only for RUNNABLE processes (TASK 3)
+    if (uproc[i].state == RUNNABLE) {
+        age = current_time - uproc[i].readytime;
+        printf("%d", age);
+        pad(1, 10);
+
+    } else {
+        printf("-");
+        pad(1, 10);
+
+    }
 
     printf("%s\n", uproc[i].name);
   }
