@@ -124,6 +124,7 @@ allocproc(void)
 found:
   p->pid = allocpid();
   p->cputime = 0;
+  p->priority = 0;
   p->state = USED;
 
   // Allocate a trapframe page.
@@ -278,6 +279,9 @@ kfork(void)
 
   // copy saved user registers.
   *(np->trapframe) = *(p->trapframe);
+
+ //(PA2) Child inherits parent's priority
+  np->priority = p->priority;
 
   // Cause fork to return 0 in the child.
   np->trapframe->a0 = 0;
@@ -793,6 +797,7 @@ getprocs(uint64 addr)
       ps.pid = p->pid;
       ps.state = p->state;
       ps.size = p->sz;
+      ps.priority = p->priority; //(PA2)
 
       if(p->parent != 0)
         ps.ppid = p->parent->pid;
@@ -816,3 +821,54 @@ getprocs(uint64 addr)
   return count;
 }
 
+// Return the priority of the process with the given PID.
+//For each process it lockss the process structure and asks if it is used
+//if it is the requested process, then we save its priority, release the lock and return the priority
+int
+getpriority(int pid)
+{
+  struct proc *p;
+  int priority;
+
+  for(p = proc; p < &proc[NPROC]; p++){
+    acquire(&p->lock);
+
+    if(p->pid == pid && p->state != UNUSED){
+      priority = p->priority;
+      release(&p->lock);
+      return priority;
+    }
+
+    release(&p->lock);
+  }
+
+  return -1;
+}
+
+// Set the priority of the process with the given PID.
+// Priority must be between 0 and 49.
+int
+setpriority(int pid, int priority)
+{
+  struct proc *p;
+
+  // Reject invalid priorities.
+  if(priority < 0 || priority > 49)
+    return -1;
+
+  // Search the process table for the requested PID.
+  for(p = proc; p < &proc[NPROC]; p++){
+    acquire(&p->lock);
+
+    if(p->pid == pid && p->state != UNUSED){
+      p->priority = priority;
+      release(&p->lock);
+      return 0;
+    }
+
+    release(&p->lock);
+  }
+
+  // PID was not found.
+  return -1;
+}

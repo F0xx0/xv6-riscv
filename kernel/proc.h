@@ -88,7 +88,8 @@ struct proc {
   int killed;           // If non-zero, have been killed
   int xstate;           // Exit status to be returned to parent's wait
   int pid;              // Process ID
-  uint cputime;
+  uint cputime;         // Time used in the CPU (PA1)
+  int priority;         // Process priority (0-49) (PA2)
 
   // wait_lock must be held when using this:
   struct proc *parent; // Parent process
@@ -103,3 +104,7 @@ struct proc {
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
 };
+
+// PA2 priority functions
+int getpriority(int pid); //Gets the priority from a specific process (PID) (PA2)
+int setpriority(int pid, int priority); //Priority for a specific process (PA2)

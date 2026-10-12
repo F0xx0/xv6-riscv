@@ -86,6 +86,8 @@ extern uint64 sys_exit(void);
 extern uint64 sys_wait(void);
 extern uint64 sys_wait2(void);
 extern uint64 sys_getprocs(void);
+extern uint64 sys_getpriority(void);
+extern uint64 sys_setpriority(void);
 extern uint64 sys_pipe(void);
 extern uint64 sys_read(void);
 extern uint64 sys_kill(void);
@@ -110,30 +112,32 @@ extern uint64 sys_sync(void);
 // to the function that handles the system call.
 static uint64 (*syscalls[])(void) = {
   // clang-format off
-  [SYS_fork]    = sys_fork,
-  [SYS_exit]    = sys_exit,
-  [SYS_wait]    = sys_wait,
-  [SYS_wait2]   = sys_wait2,
-  [SYS_getprocs] sys_getprocs,
-  [SYS_pipe]    = sys_pipe,
-  [SYS_read]    = sys_read,
-  [SYS_kill]    = sys_kill,
-  [SYS_exec]    = sys_exec,
-  [SYS_fstat]   = sys_fstat,
-  [SYS_chdir]   = sys_chdir,
-  [SYS_dup]     = sys_dup,
-  [SYS_getpid]  = sys_getpid,
-  [SYS_sbrk]    = sys_sbrk,
-  [SYS_pause]   = sys_pause,
-  [SYS_uptime]  = sys_uptime,
-  [SYS_open]    = sys_open,
-  [SYS_write]   = sys_write,
-  [SYS_mknod]   = sys_mknod,
-  [SYS_unlink]  = sys_unlink,
-  [SYS_link]    = sys_link,
-  [SYS_mkdir]   = sys_mkdir,
-  [SYS_close]   = sys_close,
-  [SYS_sync]    = sys_sync,
+  [SYS_fork]        = sys_fork,
+  [SYS_exit]        = sys_exit,
+  [SYS_wait]        = sys_wait,
+  [SYS_wait2]       = sys_wait2,
+  [SYS_getprocs]    = sys_getprocs,
+  [SYS_getpriority] = sys_getpriority,
+  [SYS_setpriority] = sys_setpriority,
+  [SYS_pipe]        = sys_pipe,
+  [SYS_read]        = sys_read,
+  [SYS_kill]        = sys_kill,
+  [SYS_exec]        = sys_exec,
+  [SYS_fstat]       = sys_fstat,
+  [SYS_chdir]       = sys_chdir,
+  [SYS_dup]         = sys_dup,
+  [SYS_getpid]      = sys_getpid,
+  [SYS_sbrk]        = sys_sbrk,
+  [SYS_pause]       = sys_pause,
+  [SYS_uptime]      = sys_uptime,
+  [SYS_open]        = sys_open,
+  [SYS_write]       = sys_write,
+  [SYS_mknod]       = sys_mknod,
+  [SYS_unlink]      = sys_unlink,
+  [SYS_link]        = sys_link,
+  [SYS_mkdir]       = sys_mkdir,
+  [SYS_close]       = sys_close,
+  [SYS_sync]        = sys_sync,
   // clang-format on
 };
 

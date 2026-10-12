@@ -8,8 +8,10 @@ struct rusage;
 int fork(void);
 int exit(int) __attribute__((noreturn));
 int wait(int *);
-int wait2(int*, struct rusage*);
-int getprocs(struct pstat*);
+int wait2(int*, struct rusage*); //(PA1)
+int getprocs(struct pstat*); //(PA2)
+int getpriority(int pid); //(PA2)
+int setpriority(int pid, int priority); //(PA2)
 int pipe(int *);
 int write(int, const void *, int);
 int read(int, void *, int);

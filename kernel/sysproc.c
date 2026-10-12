@@ -133,3 +133,27 @@ sys_getprocs(void)
   argaddr(0, &addr); //Adress supplied by user
   return getprocs(addr); //Calls process table
 }
+
+//Gets the priority of a process (PID)
+uint64
+sys_getpriority(void)
+{
+  int pid;
+
+  argint(0, &pid);
+
+  return getpriority(pid);
+}
+
+//Sets the priority of a process (PID)
+uint64
+sys_setpriority(void)
+{
+  int pid;
+  int priority;
+
+  argint(0, &pid);
+  argint(1, &priority);
+
+  return setpriority(pid, priority);
+}

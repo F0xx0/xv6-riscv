@@ -24,8 +24,10 @@ sub entry {
 entry("fork");
 entry("exit");
 entry("wait");
-entry("wait2");
-entry("getprocs");
+entry("wait2"); #(PA1)
+entry("getprocs"); #(PA2)
+entry("getpriority"); #(PA2)
+entry("setpriority"); #(PA2)
 entry("pipe");
 entry("read");
 entry("write");
