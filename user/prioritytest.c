@@ -39,9 +39,8 @@ main(int argc, char *argv[])
         printf("Run 'ps' now to check priority\n");
 
         // Keep the child alive temporarily for testing
-        volatile unsigned long i;
-        for (i = 0; i < 5000000000UL; i++) {
-        }
+        // Keep the child alive for approximately 10 seconds
+        pause(100);
         printf("\nChild finished.\n");
         exit(0);
     }

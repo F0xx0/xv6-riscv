@@ -91,6 +91,8 @@ struct proc {
   uint cputime;         // Time used in the CPU (PA1)
   int priority;         // Process priority (0-49) (PA2)
   uint readytime;       // Tick when process entered RUNNABLE (PA2)
+  uint waiting_ticks;   // Stores the accumulated num timer ticks the process has waited in runnable state (PA2)
+  uint last_ready_tick; // Records when the process most recently entered the runnable state (PA2)
 
   // wait_lock must be held when using this:
   struct proc *parent; // Parent process

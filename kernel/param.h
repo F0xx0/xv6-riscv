@@ -17,4 +17,6 @@
 #define SCHED_PRIORITY  1             //Priority Scheduling (PA2)
 //Selects the scheduling policy for compile time
 #define SCHED_POLICY SCHED_PRIORITY   //Sched_RR
-
+//Priority aging configuration
+#define AGING_INTERVAL 10             //For every 10 ticksm priority increases by 1.
+#define MAX_PRIORITY 49               //The maximum effective priority of a process is 49

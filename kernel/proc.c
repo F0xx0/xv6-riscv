@@ -548,51 +548,78 @@ scheduler(void)
             release(&p->lock);
         }
 
-#elif SCHED_POLICY == SCHED_PRIORITY // PRIORITY-BASED SCHEDULER
+#elif SCHED_POLICY == SCHED_PRIORITY //PRIORITY SCHEDULER WITH AGING
 
-        struct proc *highest = 0;
-        int highest_priority = -1;
+    struct proc *highest = 0;
+    int highest_priority = -1;
+    uint longest_wait = 0;
 
-        // Search for the RUNNABLE process
-        // with the highest priority.
+    // Find the runnable process with the highest
+    // effective priority after applying aging.
 
-        for (p = proc; p < &proc[NPROC]; p++) {
+    for (p = proc; p < &proc[NPROC]; p++) {
 
-            acquire(&p->lock);
+        acquire(&p->lock);
 
-            if (p->state == RUNNABLE &&
-                p->priority > highest_priority) {
+        if (p->state == RUNNABLE) {
 
-                highest_priority = p->priority;
+            uint now = __atomic_load_n(&ticks, __ATOMIC_RELAXED);
+
+            // Time spent waiting since becoming runnable.
+            uint wait_time = now - p->readytime;
+
+            // Calculate effective priority.
+            int effective_priority =
+                p->priority + (wait_time / AGING_INTERVAL);
+
+            // Do not exceed the maximum priority.
+            if (effective_priority > MAX_PRIORITY)
+                effective_priority = MAX_PRIORITY;
+
+            // Select the highest effective priority.
+            // If priorities are equal, select the process
+            // that has waited longer.
+
+            if (effective_priority > highest_priority ||
+                (effective_priority == highest_priority &&
+                 wait_time > longest_wait)) {
+
+                highest_priority = effective_priority;
+                longest_wait = wait_time;
                 highest = p;
             }
-
-            release(&p->lock);
         }
 
-        // Run the highest-priority process.
+        release(&p->lock);
+    }
 
-        if (highest != 0) {
+    // Run the selected process.
 
-            acquire(&highest->lock);
+    if (highest != 0) {
 
-            // Verify the process is still RUNNABLE.
-            if (highest->state == RUNNABLE) {
+        acquire(&highest->lock);
 
-                highest->state = RUNNING;
-                c->proc = highest;
+        if (highest->state == RUNNABLE) {
 
-                swtch(&c->context, &highest->context);
+            highest->state = RUNNING;
+            c->proc = highest;
 
-                // Preserve interrupt behavior.
-                mycpu()->intena = 0;
+            // Reset waiting time when the process runs.
+            highest->waiting_ticks = 0;
+            highest->last_ready_tick =
+                __atomic_load_n(&ticks, __ATOMIC_RELAXED);
 
-                c->proc = 0;
-                found = 1;
-            }
+            swtch(&c->context, &highest->context);
 
-            release(&highest->lock);
+            // Preserve existing interrupt behavior.
+            mycpu()->intena = 0;
+
+            c->proc = 0;
+            found = 1;
         }
+
+        release(&highest->lock);
+    }
 
 #else
 
